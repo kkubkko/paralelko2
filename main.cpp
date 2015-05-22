@@ -18,7 +18,62 @@
 using namespace std;
 
 /*
- * 
+TESTOVACÍ ŘETĚZCE:
+U testovacích řetězců se projevují vlastnosti popsané v mé práci.
+
+trojúhelník:
+-nedeformované:
+dbe dhe dha
+-deformované, otočené:
+bed dhea beag fbca dhce dhag fha fhca dfbhca dfbhce
+
+čtverec:
+-nedeformované:
+dbca
+-deformované, otočené:
+fheg dfbcag dfbceag fbheg fheag dbhcag fbhceag
+
+osmiúhelník:
+-nedeformované:
+dfbhceag 
+-deformované:
+dbhceag fbhceag dbhcag dbhceg
+
+kříž:
+-nedeformované:
+dbdbcbcacada
+-deformované, otočené:
+fgfhfhehegeg dbfdbcbceacada fdgfhfhechegeg dbfdbfcbcaeceadag
+
+šipka:
+-nedeformované:
+dbehege dbdheda dhfheha
+-deformované, otočené:
+fgbcgcg fhfhceagfg dfbdbheda dfbfdbhedag
+
+rovnoběžník:
+-nedeformované:
+dhcg dfce
+-deformované, otočené:
+fbea fbcea dfbcea dfbhceag dfbcea dfcea dhcag
+
+lichoběžník:
+-nedeformované:
+dhce dhag dfcg dfbe
+-deformované, otočené:
+fbha dfhcea bhcag dfbhcag beag bceag bhcg
+
+L-tvar:
+-nedeformované:
+dbcaca dbcbca dbdbca dbcada
+-deformované, otočené:
+fgfheg fbhcecheg dfbhchbceag dfbhcada
+
+dvojtá šipka:
+-nedeformované:
+dbhacg dhfceg dfcbea dhfcge
+-deformované, otočené:
+fbhag fhag fgbhcea fbcehcag
  */
 int main(int argc, char** argv) {
     string vstup;
@@ -34,11 +89,11 @@ int main(int argc, char** argv) {
     //Parser *prekladac = new Parser(zrychlovac);
     int vysledek;
     string vysledek_src;
-    //vstup = "";
+    vstup = "fgbhcea";
     
-    while (!cin.eof()) {
-        cout << "Zadejte vstupni retezec: ";
-        cin >> vstup;
+    //while (!cin.eof()) {
+    //    cout << "Zadejte vstupni retezec: ";
+    //    cin >> vstup;
         
         Parser *prekladac = new Parser(zrychlovac);
         vysledek = prekladac->provedPreklad(vstup); 
@@ -87,7 +142,7 @@ int main(int argc, char** argv) {
         cout << "vysledkek prekladu je: " << vysledek_src << endl;
        
         
-    }
+    //}
     //delete prekladac;       
     return 0;
 }
