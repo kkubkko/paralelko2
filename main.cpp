@@ -9,6 +9,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <cstdio>
+#include <thread>
 #include "tab/lrtab.h"
 #include "tab/lrtab_b.h"
 #include "parser.h"
@@ -18,7 +19,62 @@
 using namespace std;
 
 /*
- * 
+TESTOVACÍ ŘETĚZCE:
+U testovacích řetězců se projevují vlastnosti popsané v mé práci.
+
+trojúhelník:
+-nedeformované:
+dbe dhe dha
+-deformované, otočené:
+bed dhea beag fbca dhce dhag fha fhca dfbhca dfbhce
+
+čtverec:
+-nedeformované:
+dbca
+-deformované, otočené:
+fheg dfbcag dfbceag fbheg fheag dbhcag fbhceag
+
+osmiúhelník:
+-nedeformované:
+dfbhceag 
+-deformované:
+dbhceag fbhceag dbhcag dbhceg
+
+kříž:
+-nedeformované:
+dbdbcbcacada
+-deformované, otočené:
+fgfhfhehegeg dbfdbcbceacada fdgfhfhechegeg dbfdbfcbcaeceadag
+
+šipka:
+-nedeformované:
+dbehege dbdheda dhfheha
+-deformované, otočené:
+fgbcgcg fhfhceagfg dfbdbheda dfbfdbhedag
+
+rovnoběžník:
+-nedeformované:
+dhcg dfce
+-deformované, otočené:
+fbea fbcea dfbcea dfbhceag dfbcea dfcea dhcag
+
+lichoběžník:
+-nedeformované:
+dhce dhag dfcg dfbe
+-deformované, otočené:
+fbha dfhcea bhcag dfbhcag beag bceag bhcg
+
+L-tvar:
+-nedeformované:
+dbcaca dbcbca dbdbca dbcada
+-deformované, otočené:
+fgfheg fbhcecheg dfbhchbceag dfbhcada
+
+dvojtá šipka:
+-nedeformované:
+dbhacg dhfceg dfcbea dhfcge
+-deformované, otočené:
+fbhag fhag fgbhcea fbcehcag
  */
 int main(int argc, char** argv) {
     string vstup;
@@ -38,10 +94,19 @@ int main(int argc, char** argv) {
     
     while (!cin.eof()) {
         cout << "Zadejte vstupni retezec: ";
-        cin >> vstup;
-        
+        cin >> vstup;       
         Parser *prekladac = new Parser(zrychlovac);
-        vysledek = prekladac->provedPreklad(vstup); 
+        
+        vysledek = prekladac->nastavRetezec(vstup);
+        
+        if (vysledek != -2) {
+        
+            thread t1(&Parser::provedPreklad,prekladac);        
+            t1.join();
+        }
+        vysledek = prekladac->zjistiVysledky();
+        //vysledek = */prekladac->provedPreklad(vstup); 
+        // vysledek = -2;
         delete prekladac;
         if (vysledek == -2) {
             cout << "Retezec obsahuje spatne znaky" << endl;
