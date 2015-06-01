@@ -15,6 +15,7 @@
 Parser::Parser(bool p_urychlovac) {
 
     m_vstup = -1;
+    m_konec = false;
     tb_alfa = new LRtabulka();
     tb_beta = new LRtabulka_beta();
     scan = new Scanner();
@@ -435,10 +436,9 @@ bool Parser::jeKonec() {
 /*
  * Hlavní funkce parsru - řídí celý překlad.
  */
-int Parser::provedPreklad(string p_vstup_string){
+int Parser::nastavRetezec(string p_vstup_string){
     scan->vstupniRetezec(p_vstup_string);
     //cout << p_vstup_string << endl;
-    bool konec = false;
     Vlakno *pomVlakno;
     
     // otoč vstup do požadované polohy
@@ -453,6 +453,12 @@ int Parser::provedPreklad(string p_vstup_string){
     vlakno->m_akt_vstup = m_vstup;
     m_list.pridejNaZacatek(vlakno);
     m_list.nastavAktNaFirst();
+    return 1;
+}
+
+
+void Parser::provedPreklad(){
+    Vlakno *pomVlakno;
     
     // hlavní cyklus
     do {        
@@ -464,15 +470,19 @@ int Parser::provedPreklad(string p_vstup_string){
             m_list.aktRight();
         }
         if (jeKonec()) {
-            konec = true;
+            m_konec = true;
         }
         smazErrStavy();
         posunVstup();
         m_list.nastavAktNaFirst();
-    } while (!m_list.isEmpty() && !konec);
-    
+    } while (!m_list.isEmpty() && !m_konec);
+}
+
+
+int Parser::zjistiVysledky(){
     // pokud konec - vypiš výsledky
-    if (konec) {
+    Vlakno *pomVlakno;
+    if (m_konec) {
         int vysl, vzdal;
         bool prv = true;
         m_list.nastavAktNaFirst();

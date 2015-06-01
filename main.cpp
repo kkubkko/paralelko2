@@ -9,6 +9,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <cstdio>
+#include <thread>
 #include "tab/lrtab.h"
 #include "tab/lrtab_b.h"
 #include "parser.h"
@@ -91,12 +92,24 @@ int main(int argc, char** argv) {
     string vysledek_src;
     vstup = "fgbhcea";
     
+    while (!cin.eof()) {
+        cout << "Zadejte vstupni retezec: ";
+        cin >> vstup;       
+        Parser *prekladac = new Parser(zrychlovac);
     //while (!cin.eof()) {
     //    cout << "Zadejte vstupni retezec: ";
     //    cin >> vstup;
         
-        Parser *prekladac = new Parser(zrychlovac);
-        vysledek = prekladac->provedPreklad(vstup); 
+        vysledek = prekladac->nastavRetezec(vstup);
+        
+        if (vysledek != -2) {
+        
+            thread t1(&Parser::provedPreklad,prekladac);        
+            t1.join();
+        }
+        vysledek = prekladac->zjistiVysledky();
+        //vysledek = */prekladac->provedPreklad(vstup); 
+        // vysledek = -2;
         delete prekladac;
         if (vysledek == -2) {
             cout << "Retezec obsahuje spatne znaky" << endl;
