@@ -27,6 +27,7 @@ private:
     polozka *m_last;
     polozka *m_akt;
     int m_poc_polozkek;
+    int m_act_pozice;
     
 public:
     List();
@@ -47,6 +48,7 @@ public:
     bool akt();
     bool isEmpty();
     int vratPocPolozek();
+    int vratAktualniPozici();
     void smazVse();
     
     void aktVstupVlakna(int p_vstup);

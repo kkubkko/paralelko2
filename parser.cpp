@@ -75,7 +75,9 @@ int Parser::redukuj(Vlakno *p_vlakno){
         pravidlo = pomVlakno->m_polozka.pravidlo2;
         vysledek2 = m_redukce.reduce(pomVlakno, pravidlo);
         
-        m_list.pridejNaKonec(pomVlakno);   
+        sem_a.lock();
+        m_list.pridejNaKonec(pomVlakno); 
+        sem_a.unlock();
         
         if (vysledek2 == -1) {
             //cout << "chyba reduce pravidla 2!!\n";
@@ -90,7 +92,9 @@ int Parser::redukuj(Vlakno *p_vlakno){
         pravidlo = pomVlakno2->m_polozka.pravidlo3;
         vysledek3 = m_redukce.reduce(pomVlakno2, pravidlo);
         
-        m_list.pridejNaKonec(pomVlakno2);   
+        sem_a.lock();
+        m_list.pridejNaKonec(pomVlakno2);
+        sem_a.unlock();
         
         if (vysledek3 == -1) {
             //cout << "chyba reduce pravidla 3!!\n";
@@ -205,7 +209,9 @@ bool Parser::rozdel(Vlakno *p_vlakno,akce p_akce[SLP_ALFA], int p_vstupy[SLP_ALF
                     pomVlakno2->m_vzdalenost++;
                 }
 
+                sem_a.lock();
                 m_list.pridejNaKonec(pomVlakno2); 
+                sem_a.unlock();
             }  
             if (pomVlakno->m_polozka.poc_pravidel > 3) {
                 Vlakno *pomVlakno3 = new Vlakno(p_vlakno);
@@ -223,10 +229,14 @@ bool Parser::rozdel(Vlakno *p_vlakno,akce p_akce[SLP_ALFA], int p_vstupy[SLP_ALF
                     pomVlakno3->m_vzdalenost++;
                 }
 
-                m_list.pridejNaKonec(pomVlakno3); 
+                sem_a.lock();
+                m_list.pridejNaKonec(pomVlakno3);
+                sem_a.unlock();
             }
         }
-        m_list.pridejNaKonec(pomVlakno);        
+        sem_a.lock();
+        m_list.pridejNaKonec(pomVlakno);
+        sem_a.unlock();
     }
     // smaž původní vlákno
     p_vlakno->m_err_stav = ERR_ERR;
@@ -308,7 +318,9 @@ void Parser::krokPrekladu(Vlakno *p_vlakno){
             pomVlakno->m_polozka.tab_akce = REDUCE;
             pomVlakno->m_konflikt = true;
             pomVlakno->m_polozka.konflikt = false;
+            sem_a.lock();
             m_list.pridejNaKonec(pomVlakno);
+            sem_a.unlock();
         }
         p_vlakno->m_konflikt = false;
         
@@ -461,7 +473,10 @@ void Parser::provedPreklad(){
     Vlakno *pomVlakno;
     
     // hlavní cyklus
-    do {        
+    do {
+
+
+        
         while (m_list.akt()){
             pomVlakno = m_list.vratAkt();
             if (pomVlakno->m_err_stav != END) {
@@ -469,6 +484,11 @@ void Parser::provedPreklad(){
             }
             m_list.aktRight();
         }
+        
+        
+        
+        
+        
         if (jeKonec()) {
             m_konec = true;
         }

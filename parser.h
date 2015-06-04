@@ -11,6 +11,7 @@
 #include <stack>
 #include <list>
 #include <iostream>
+#include <mutex>
 #include "redukce.h"
 #include "tab/data.h"
 #include "tab/lrtab.h"
@@ -31,6 +32,8 @@ private:
     int m_poc_vlaken;
     bool m_urychleni;
     bool m_konec;
+    
+    mutex sem_a;
     
     Vlakno *vlakno;
     LRtabulka *tb_alfa;

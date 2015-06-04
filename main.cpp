@@ -90,15 +90,12 @@ int main(int argc, char** argv) {
     //Parser *prekladac = new Parser(zrychlovac);
     int vysledek;
     string vysledek_src;
-    vstup = "fgbhcea";
+    //vstup = "fgbhcea";
     
     while (!cin.eof()) {
         cout << "Zadejte vstupni retezec: ";
         cin >> vstup;       
         Parser *prekladac = new Parser(zrychlovac);
-    //while (!cin.eof()) {
-    //    cout << "Zadejte vstupni retezec: ";
-    //    cin >> vstup;
         
         vysledek = prekladac->nastavRetezec(vstup);
         
@@ -155,7 +152,7 @@ int main(int argc, char** argv) {
         cout << "vysledkek prekladu je: " << vysledek_src << endl;
        
         
-    //}
+    }
     //delete prekladac;       
     return 0;
 }

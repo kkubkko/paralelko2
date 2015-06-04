@@ -13,3 +13,5 @@ clean:
 	
 main.o: main.cpp
 	g++ -std=c++11 -pthread -c -o main.o main.cpp
+parser.o: parser.cpp
+	g++ -std=c++11 -pthread -c -o parser.o parser.cpp
