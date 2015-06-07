@@ -1,4 +1,4 @@
-/* 
+/*
  * File:   main.cpp
  * Author: Lukáš Junek
  *
@@ -9,6 +9,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <cstdio>
+#include <thread>
 #include "tab/lrtab.h"
 #include "tab/lrtab_b.h"
 #include "parser.h"
@@ -18,7 +19,62 @@
 using namespace std;
 
 /*
- * 
+TESTOVACÍ ŘETĚZCE:
+U testovacích řetězců se projevují vlastnosti popsané v mé práci.
+
+trojúhelník:
+-nedeformované:
+dbe dhe dha
+-deformované, otočené:
+bed dhea beag fbca dhce dhag fha fhca dfbhca dfbhce
+
+čtverec:
+-nedeformované:
+dbca
+-deformované, otočené:
+fheg dfbcag dfbceag fbheg fheag dbhcag fbhceag
+
+osmiúhelník:
+-nedeformované:
+dfbhceag 
+-deformované:
+dbhceag fbhceag dbhcag dbhceg
+
+kříž:
+-nedeformované:
+dbdbcbcacada
+-deformované, otočené:
+fgfhfhehegeg dbfdbcbceacada fdgfhfhechegeg dbfdbfcbcaeceadag
+
+šipka:
+-nedeformované:
+dbehege dbdheda dhfheha
+-deformované, otočené:
+fgbcgcg fhfhceagfg dfbdbheda dfbfdbhedag
+
+rovnoběžník:
+-nedeformované:
+dhcg dfce
+-deformované, otočené:
+fbea fbcea dfbcea dfbhceag dfbcea dfcea dhcag
+
+lichoběžník:
+-nedeformované:
+dhce dhag dfcg dfbe
+-deformované, otočené:
+fbha dfhcea bhcag dfbhcag beag bceag bhcg
+
+L-tvar:
+-nedeformované:
+dbcaca dbcbca dbdbca dbcada
+-deformované, otočené:
+fgfheg fbhcecheg dfbhchbceag dfbhcada
+
+dvojtá šipka:
+-nedeformované:
+dbhacg dhfceg dfcbea dhfcge
+-deformované, otočené:
+fbhag fhag fgbhcea fbcehcag
  */
 int main(int argc, char** argv) {
     string vstup;
@@ -34,30 +90,42 @@ int main(int argc, char** argv) {
     //Parser *prekladac = new Parser(zrychlovac);
     int vysledek;
     string vysledek_src;
-    //vstup = "";
+    //vstup = "fgbhcea";
     
     while (!cin.eof()) {
         cout << "Zadejte vstupni retezec: ";
         cin >> vstup;
         
+        
         /*
-        using namespace std::chrono;
-        milliseconds start = duration_cast< milliseconds >(
-                                                        system_clock::now().time_since_epoch()
-                                                        );
+         using namespace std::chrono;
+         milliseconds start = duration_cast< milliseconds >(
+         system_clock::now().time_since_epoch()
+         );
          */
         
+        
         Parser *prekladac = new Parser(zrychlovac);
-        vysledek = prekladac->provedPreklad(vstup); 
+        
+        vysledek = prekladac->nastavRetezec(vstup);
+        
+        if (vysledek != -2) {
+        
+            thread t1(&Parser::provedPreklad,prekladac);        
+            t1.join();
+        }
+        vysledek = prekladac->zjistiVysledky();
+        //vysledek = */prekladac->provedPreklad(vstup); 
+        // vysledek = -2;
         delete prekladac;
         
         /*
-        milliseconds end = duration_cast< milliseconds >(
-                                                        system_clock::now().time_since_epoch()
-                                                        );
-        
-        std::chrono::duration<double> elapsed_seconds = end-start;
-        std::cout << "elapsed time: " << elapsed_seconds.count() << "s\n";
+         milliseconds end = duration_cast< milliseconds >(
+         system_clock::now().time_since_epoch()
+         );
+         
+         std::chrono::duration<double> elapsed_seconds = end-start;
+         std::cout << "elapsed time: " << elapsed_seconds.count() << "s\n";
          */
         
         if (vysledek == -2) {
@@ -108,4 +176,3 @@ int main(int argc, char** argv) {
     //delete prekladac;       
     return 0;
 }
-

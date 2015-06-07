@@ -11,6 +11,7 @@
 #include <stack>
 #include <list>
 #include <iostream>
+#include <mutex>
 #include "redukce.h"
 #include "tab/data.h"
 #include "tab/lrtab.h"
@@ -30,6 +31,9 @@ private:
     int m_vstup;
     int m_poc_vlaken;
     bool m_urychleni;
+    bool m_konec;
+    
+    mutex sem_a;
     
     Vlakno *vlakno;
     LRtabulka *tb_alfa;
@@ -52,7 +56,9 @@ private:
     bool rozdel(Vlakno *p_vlakno,akce p_akce[SLP_ALFA], int p_vstupy[SLP_ALFA], int p_stavy[SLP_ALFA], int p_poc_res);
 public:
     Parser(bool p_urychlovac);
-    int provedPreklad(string p_vstup_string);
+    int nastavRetezec(string p_vstup_string);
+    void provedPreklad();
+    int zjistiVysledky();
     ~Parser();
 
 

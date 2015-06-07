@@ -15,6 +15,7 @@
 Parser::Parser(bool p_urychlovac) {
 
     m_vstup = -1;
+    m_konec = false;
     tb_alfa = new LRtabulka();
     tb_beta = new LRtabulka_beta();
     scan = new Scanner();
@@ -74,7 +75,9 @@ int Parser::redukuj(Vlakno *p_vlakno){
         pravidlo = pomVlakno->m_polozka.pravidlo2;
         vysledek2 = m_redukce.reduce(pomVlakno, pravidlo);
         
-        m_list.pridejNaKonec(pomVlakno);   
+        sem_a.lock();
+        m_list.pridejNaKonec(pomVlakno); 
+        sem_a.unlock();
         
         if (vysledek2 == -1) {
             //cout << "chyba reduce pravidla 2!!\n";
@@ -89,7 +92,9 @@ int Parser::redukuj(Vlakno *p_vlakno){
         pravidlo = pomVlakno2->m_polozka.pravidlo3;
         vysledek3 = m_redukce.reduce(pomVlakno2, pravidlo);
         
-        m_list.pridejNaKonec(pomVlakno2);   
+        sem_a.lock();
+        m_list.pridejNaKonec(pomVlakno2);
+        sem_a.unlock();
         
         if (vysledek3 == -1) {
             //cout << "chyba reduce pravidla 3!!\n";
@@ -204,7 +209,9 @@ bool Parser::rozdel(Vlakno *p_vlakno,akce p_akce[SLP_ALFA], int p_vstupy[SLP_ALF
                     pomVlakno2->m_vzdalenost++;
                 }
 
+                sem_a.lock();
                 m_list.pridejNaKonec(pomVlakno2); 
+                sem_a.unlock();
             }  
             if (pomVlakno->m_polozka.poc_pravidel > 3) {
                 Vlakno *pomVlakno3 = new Vlakno(p_vlakno);
@@ -222,10 +229,14 @@ bool Parser::rozdel(Vlakno *p_vlakno,akce p_akce[SLP_ALFA], int p_vstupy[SLP_ALF
                     pomVlakno3->m_vzdalenost++;
                 }
 
-                m_list.pridejNaKonec(pomVlakno3); 
+                sem_a.lock();
+                m_list.pridejNaKonec(pomVlakno3);
+                sem_a.unlock();
             }
         }
-        m_list.pridejNaKonec(pomVlakno);        
+        sem_a.lock();
+        m_list.pridejNaKonec(pomVlakno);
+        sem_a.unlock();
     }
     // smaž původní vlákno
     p_vlakno->m_err_stav = ERR_ERR;
@@ -307,7 +318,9 @@ void Parser::krokPrekladu(Vlakno *p_vlakno){
             pomVlakno->m_polozka.tab_akce = REDUCE;
             pomVlakno->m_konflikt = true;
             pomVlakno->m_polozka.konflikt = false;
+            sem_a.lock();
             m_list.pridejNaKonec(pomVlakno);
+            sem_a.unlock();
         }
         p_vlakno->m_konflikt = false;
         
@@ -435,10 +448,9 @@ bool Parser::jeKonec() {
 /*
  * Hlavní funkce parsru - řídí celý překlad.
  */
-int Parser::provedPreklad(string p_vstup_string){
+int Parser::nastavRetezec(string p_vstup_string){
     scan->vstupniRetezec(p_vstup_string);
     //cout << p_vstup_string << endl;
-    bool konec = false;
     Vlakno *pomVlakno;
     
     // otoč vstup do požadované polohy
@@ -453,9 +465,18 @@ int Parser::provedPreklad(string p_vstup_string){
     vlakno->m_akt_vstup = m_vstup;
     m_list.pridejNaZacatek(vlakno);
     m_list.nastavAktNaFirst();
+    return 1;
+}
+
+
+void Parser::provedPreklad(){
+    Vlakno *pomVlakno;
     
     // hlavní cyklus
-    do {        
+    do {
+
+
+        
         while (m_list.akt()){
             pomVlakno = m_list.vratAkt();
             if (pomVlakno->m_err_stav != END) {
@@ -463,16 +484,25 @@ int Parser::provedPreklad(string p_vstup_string){
             }
             m_list.aktRight();
         }
+        
+        
+        
+        
+        
         if (jeKonec()) {
-            konec = true;
+            m_konec = true;
         }
         smazErrStavy();
         posunVstup();
         m_list.nastavAktNaFirst();
-    } while (!m_list.isEmpty() && !konec);
-    
+    } while (!m_list.isEmpty() && !m_konec);
+}
+
+
+int Parser::zjistiVysledky(){
     // pokud konec - vypiš výsledky
-    if (konec) {
+    Vlakno *pomVlakno;
+    if (m_konec) {
         int vysl, vzdal;
         bool prv = true;
         m_list.nastavAktNaFirst();

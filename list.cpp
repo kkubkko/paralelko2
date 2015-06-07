@@ -17,6 +17,7 @@ List::List() {
     m_first = 0;
     m_last = 0;
     m_akt = 0;
+    m_act_pozice = -1;
 }
 
 List::~List() {
@@ -32,6 +33,8 @@ void List::smazVse() {
     while (!isEmpty()){
         smazFirst();
     }
+    m_poc_polozkek = 0;
+    m_act_pozice = -1;
 }
 
 void List::pridejNaZacatek(Vlakno* p_vlakno){
@@ -47,6 +50,9 @@ void List::pridejNaZacatek(Vlakno* p_vlakno){
         m_last = m_first;
     }
     m_poc_polozkek++;
+    if (this->akt()) {
+        m_act_pozice++;
+    }
 }
 
 void List::pridejNaKonec(Vlakno* p_vlakno){
@@ -89,17 +95,20 @@ Vlakno* List::vratAkt() {
 
 void List::nastavAktNaFirst() {
     m_akt = m_first;
+    m_act_pozice = 0;
 }
 
 void List::aktLeft() {
     if (m_akt != 0) {
         m_akt = m_akt->left;
+        m_act_pozice++;
     }
 }
 
 void List::aktRight() {
     if (m_akt != 0) {
         m_akt = m_akt->right;
+        m_act_pozice--;
     }
 }
 
@@ -157,12 +166,18 @@ void List::smazFirst() {
         if (m_first != 0) m_first->left = 0;
         delete pom;
         m_poc_polozkek--;
+        if (this->akt()){
+            m_act_pozice--;
+        }
     }
 }
 
 void List::smazLast() {
     polozka *pom;
     if (m_last != 0) {
+        if (this->aktLast()){
+            m_act_pozice = -1;
+        }
         pom = m_last;
         m_last = pom->left;
         if (m_last != 0) m_last->right = 0;
@@ -173,6 +188,10 @@ void List::smazLast() {
 
 int List::vratPocPolozek(){
     return m_poc_polozkek;
+}
+
+int List::vratAktualniPozici(){
+    return m_act_pozice;
 }
 
 bool List::isEmpty() {
