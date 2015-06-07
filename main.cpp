@@ -40,9 +40,26 @@ int main(int argc, char** argv) {
         cout << "Zadejte vstupni retezec: ";
         cin >> vstup;
         
+        /*
+        using namespace std::chrono;
+        milliseconds start = duration_cast< milliseconds >(
+                                                        system_clock::now().time_since_epoch()
+                                                        );
+         */
+        
         Parser *prekladac = new Parser(zrychlovac);
         vysledek = prekladac->provedPreklad(vstup); 
         delete prekladac;
+        
+        /*
+        milliseconds end = duration_cast< milliseconds >(
+                                                        system_clock::now().time_since_epoch()
+                                                        );
+        
+        std::chrono::duration<double> elapsed_seconds = end-start;
+        std::cout << "elapsed time: " << elapsed_seconds.count() << "s\n";
+         */
+        
         if (vysledek == -2) {
             cout << "Retezec obsahuje spatne znaky" << endl;
         } 
