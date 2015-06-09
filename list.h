@@ -35,12 +35,14 @@ public:
     void pridejNaKonec(Vlakno *p_vlakno);
     void pridejNaZacatek(Vlakno *p_vlakno);
     void smazAkt();
+    void smazPrv(polozka* prv);
     void smazFirst();
     void smazLast();
     void nastavAktNaFirst();
     Vlakno* vratPrvni();
     Vlakno* vratPosledni();
     Vlakno* vratAkt();
+    polozka* vratAktPrv();
     void aktLeft();
     void aktRight();
     bool aktFirst();

@@ -93,6 +93,15 @@ Vlakno* List::vratAkt() {
     }
 }
 
+polozka* List::vratAktPrv(){
+    if (m_akt != 0) {
+        return m_akt;
+    } else {
+        return 0;
+    }
+}
+
+
 void List::nastavAktNaFirst() {
     m_akt = m_first;
     m_act_pozice = 0;
@@ -147,6 +156,27 @@ void List::smazAkt() {
         }
         pom = m_akt;
         m_akt = pom->right;
+        if (!pom->right == 0) {
+            pom->right->left = pom->left;
+        }
+        if (!pom->left == 0) {
+            pom->left->right = pom->right;
+        }
+        delete pom;
+        m_poc_polozkek--;
+    }
+}
+
+void List::smazPrv(polozka* prv){
+    polozka *pom;
+    if (prv != 0) {
+        if (prv == m_first) {
+            m_first = prv->right;
+        }
+        if (prv == m_last) {
+            m_last = prv->left;
+        }
+        pom = prv;
         if (!pom->right == 0) {
             pom->right->left = pom->left;
         }

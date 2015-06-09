@@ -32,8 +32,16 @@ private:
     int m_poc_vlaken;
     bool m_urychleni;
     bool m_konec;
+    bool m_posun;
     
     mutex sem_a;
+    mutex sem_b;
+    mutex sem_c;
+    mutex barier_1;
+    mutex barier_2;
+    int barier_1_count;
+    int barier_2_count;
+    bool pokrac_v_cyklu;
     
     Vlakno *vlakno;
     LRtabulka *tb_alfa;
@@ -47,9 +55,9 @@ private:
     void krokPrekladu(Vlakno *p_vlakno);
     
     void smazErrStavy();
-    bool posun();
+    void posun();
     void posunVstup();
-    bool jeKonec();
+    void jeKonec();
     
     bool prebytek(Vlakno *p_vlakno);
     bool chybyVstup(Vlakno *p_vlakno,akce p_akce[SLP_ALFA], int p_vstupy[SLP_ALFA], int p_poc_res);

@@ -16,10 +16,15 @@ Parser::Parser(bool p_urychlovac) {
 
     m_vstup = -1;
     m_konec = false;
+    m_posun = true;
     tb_alfa = new LRtabulka();
     tb_beta = new LRtabulka_beta();
     scan = new Scanner();
     m_urychleni = p_urychlovac;
+    
+    barier_1_count = 0;
+    barier_2_count = 0;
+    pokrac_v_cyklu = true;
 
 }
 /*
@@ -77,6 +82,7 @@ int Parser::redukuj(Vlakno *p_vlakno){
         
         sem_a.lock();
         m_list.pridejNaKonec(pomVlakno); 
+        if ((m_list.vratPocPolozek() - m_list.vratAktualniPozici()) == 1) barier_1.unlock();
         sem_a.unlock();
         
         if (vysledek2 == -1) {
@@ -94,6 +100,7 @@ int Parser::redukuj(Vlakno *p_vlakno){
         
         sem_a.lock();
         m_list.pridejNaKonec(pomVlakno2);
+        if ((m_list.vratPocPolozek() - m_list.vratAktualniPozici()) == 1) barier_1.unlock();
         sem_a.unlock();
         
         if (vysledek3 == -1) {
@@ -210,7 +217,8 @@ bool Parser::rozdel(Vlakno *p_vlakno,akce p_akce[SLP_ALFA], int p_vstupy[SLP_ALF
                 }
 
                 sem_a.lock();
-                m_list.pridejNaKonec(pomVlakno2); 
+                m_list.pridejNaKonec(pomVlakno2);
+                if ((m_list.vratPocPolozek() - m_list.vratAktualniPozici()) == 1) barier_1.unlock();
                 sem_a.unlock();
             }  
             if (pomVlakno->m_polozka.poc_pravidel > 3) {
@@ -231,11 +239,13 @@ bool Parser::rozdel(Vlakno *p_vlakno,akce p_akce[SLP_ALFA], int p_vstupy[SLP_ALF
 
                 sem_a.lock();
                 m_list.pridejNaKonec(pomVlakno3);
+                if ((m_list.vratPocPolozek() - m_list.vratAktualniPozici()) == 1) barier_1.unlock();
                 sem_a.unlock();
             }
         }
         sem_a.lock();
         m_list.pridejNaKonec(pomVlakno);
+        if ((m_list.vratPocPolozek() - m_list.vratAktualniPozici()) == 1) barier_1.unlock();
         sem_a.unlock();
     }
     // smaž původní vlákno
@@ -320,6 +330,7 @@ void Parser::krokPrekladu(Vlakno *p_vlakno){
             pomVlakno->m_polozka.konflikt = false;
             sem_a.lock();
             m_list.pridejNaKonec(pomVlakno);
+            if ((m_list.vratPocPolozek() - m_list.vratAktualniPozici()) == 1) barier_1.unlock();
             sem_a.unlock();
         }
         p_vlakno->m_konflikt = false;
@@ -361,89 +372,123 @@ void Parser::krokPrekladu(Vlakno *p_vlakno){
  */
 void Parser::smazErrStavy(){
     Vlakno *pomVlakno;
-    m_list.nastavAktNaFirst();
-    while (m_list.akt()) {
-        pomVlakno = m_list.vratAkt(); 
-        // smaž vlákna, která překročila danou toleranci
-        if (pomVlakno->m_vzdalenost > max_vzdalenost) {
-            pomVlakno->m_err_stav = ERR_ERR;
-        }
-        
-        // samotné mazání
-        if (pomVlakno->m_err_stav == ERR_ALFA_VSTUP || pomVlakno->m_err_stav == ERR_BETA_VSTUP 
-            || pomVlakno->m_err_stav == ERR_RED || pomVlakno->m_err_stav == ERR_ERR) {
-            m_list.smazAkt();
-        } else {
+    polozka* pomPrv;
+    while (pokrac_v_cyklu) {
+        sem_a.lock();
+        if (m_list.vratAktualniPozici() < m_list.vratPocPolozek()) {
+            pomVlakno = m_list.vratAkt(); 
+            pomPrv = m_list.vratAktPrv();
             m_list.aktRight();
-        }
+            sem_a.unlock();
+            // smaž vlákna, která překročila danou toleranci
+            if (pomVlakno->m_vzdalenost > max_vzdalenost) {
+                pomVlakno->m_err_stav = ERR_ERR;
+            }
+            // samotné mazání
+            if (pomVlakno->m_err_stav == ERR_ALFA_VSTUP || pomVlakno->m_err_stav == ERR_BETA_VSTUP 
+                || pomVlakno->m_err_stav == ERR_RED || pomVlakno->m_err_stav == ERR_ERR) {
+                sem_a.lock();
+                m_list.smazPrv(pomPrv);
+                sem_a.unlock();
+            }
+        } else {
+            sem_a.unlock();
+            
+            sem_b.lock();
+            if (barier_1_count < max_vlaken) {
+                barier_1_count++;
+            } else {
+                pokrac_v_cyklu = false;
+                barier_2.lock();
+                barier_1.unlock();
+            }
+            sem_b.unlock();
+            
+            barier_1.lock();
+            barier_1.unlock();            
+        }        
     }
 }
 /*
  * Kontrola, zda je možné načíst nový token.
  */
-bool Parser::posun() {
-    bool posun = true;
+void Parser::posun() {
+    m_posun = true;
     Vlakno *pomVlakno;
-    m_list.nastavAktNaFirst();
-    while (m_list.akt() && posun) {
+    
+    while (m_list.akt() && m_posun) {
         pomVlakno = m_list.vratAkt();
         if (pomVlakno->m_err_stav != WAIT_SHIFT) {
             if (pomVlakno->m_err_stav != ERR_MISS && pomVlakno->m_err_stav != ERR_WAIT && pomVlakno->m_err_stav != END) {
-                posun = false;
+                m_posun = false;
             }           
         }
         m_list.aktRight();
     }
-    return posun;
 }
 /*
  * Funkce načítající nový token ze scanneru. 
  */
 void Parser::posunVstup() {
-    if(posun()){ // pokud je možné posunout vstup
-        m_vstup = scan->nactiDalsi();
-        m_list.nastavAktNaFirst();
-        while (m_list.akt()) {
+    Vlakno* pomVlakno;
+    while (pokrac_v_cyklu) {
+        sem_a.lock();
+        if(m_posun && (m_list.vratAktualniPozici() < m_list.vratPocPolozek())){// pokud je možné posunout vstup
+            pomVlakno = m_list.vratAkt();
+            m_list.aktRight();
+            sem_a.unlock();
+            
             // pokud přebývající token - pokračuj až pro další hranu
-            if (m_list.vratStavVlakna() == ERR_MISS) { 
-                if (m_vstup == m_list.vratVstupVlakna()){
-                    m_list.aktStavVlakna(OK);
+            if (pomVlakno->m_err_stav == ERR_MISS) { 
+                if (m_vstup == pomVlakno->m_akt_vstup){
+                    pomVlakno->m_err_stav = OK;
                 }
             // pokud oprava pomocí rozdělení vlákna - počkej až na další hranu
-            } else if (m_list.vratStavVlakna() == ERR_WAIT) {
-                if (m_vstup != m_list.vratVstupVlakna() /*&& m_vstup != vs_end*/) {
-                    m_list.aktVstupVlakna(m_vstup);
-                    m_list.aktStavVlakna(OK);
+            } else if (pomVlakno->m_err_stav == ERR_WAIT) {
+                if (m_vstup != pomVlakno->m_akt_vstup /*&& m_vstup != vs_end*/) {
+                    pomVlakno->m_akt_vstup = m_vstup;
+                    pomVlakno->m_err_stav = OK;
                 }
             // pokud konečný stav - nic nedělej
-            } else if (m_list.vratStavVlakna() == END) {
-                m_list.aktVstupVlakna(m_vstup);
-                m_list.aktStavVlakna(END);
+            } else if (pomVlakno->m_err_stav == END) {
+                pomVlakno->m_akt_vstup = m_vstup;
+                pomVlakno->m_err_stav = END;
             // všechna ostatní vlákna připravena na další token
             } else {
-                m_list.aktVstupVlakna(m_vstup);
-                m_list.aktStavVlakna(OK);
+                pomVlakno->m_akt_vstup = m_vstup;
+                pomVlakno->m_err_stav = OK;
             }
-            m_list.aktRight();
-        }        
+        } else {
+            sem_a.unlock();
+            
+            sem_b.lock();
+            if (barier_1_count < max_vlaken) {
+                barier_1_count++;
+            } else {
+                pokrac_v_cyklu = false;
+                barier_2.lock();
+                barier_1.unlock();
+            }
+            sem_b.unlock();
+            
+            barier_1.lock();
+            barier_1.unlock();
+        }
     }
 }
 /*
  * Funkce kontroluje, zda je možné ukončit analýzu - pokud jsou všechna zbývající vlákna
  * úspěšně ukončená.
  */
-bool Parser::jeKonec() {
-    bool konec = true;
+void Parser::jeKonec() {
     Vlakno *pomVlakno;
-    m_list.nastavAktNaFirst();
-    while (m_list.akt() && konec){
+    while ((m_list.vratAktualniPozici() < m_list.vratPocPolozek()) && m_konec){
         pomVlakno = m_list.vratAkt();
-        if (pomVlakno->m_err_stav != END) {
-            konec = false;
-        }
         m_list.aktRight();
-    }
-    return konec;    
+        if (pomVlakno->m_err_stav != END) {
+            m_konec = false;
+        }
+    } 
 }
 /*
  * Hlavní funkce parsru - řídí celý překlad.
@@ -474,27 +519,112 @@ void Parser::provedPreklad(){
     
     // hlavní cyklus
     do {
-
-
-        
-        while (m_list.akt()){
-            pomVlakno = m_list.vratAkt();
-            if (pomVlakno->m_err_stav != END) {
-                krokPrekladu(pomVlakno);
+        // krok prekladu -------------------------------------------------------
+        while (pokrac_v_cyklu) {
+            sem_a.lock();
+            if (m_list.vratAktualniPozici() < m_list.vratPocPolozek()){
+                pomVlakno = m_list.vratAkt();
+                m_list.aktRight();
+                if (m_list.vratAktualniPozici() >= m_list.vratPocPolozek()) barier_1.lock();
+                sem_a.unlock();
+                
+                if (pomVlakno->m_err_stav != END) {
+                    krokPrekladu(pomVlakno);
+                }
+            } else {
+                sem_a.unlock();
+                
+                sem_b.lock();
+                if (barier_1_count < max_vlaken) {
+                    barier_1_count++;
+                } else {
+                    pokrac_v_cyklu = false;
+                    barier_2.lock();
+                    barier_1.unlock();
+                }
+                sem_b.unlock();
+                
+                barier_1.lock();
+                barier_1.unlock();
+                
+                sem_b.lock();
+                barier_1_count--;
+                sem_b.unlock();
             }
-            m_list.aktRight();
         }
         
-        
-        
-        
-        
-        if (jeKonec()) {
+        // konec ---------------------------------------------------------------
+        sem_c.lock();
+        if (barier_2_count == 0) {
+            barier_2_count++;
+            sem_c.unlock();
+            m_list.nastavAktNaFirst();
             m_konec = true;
+            jeKonec();
+            m_list.nastavAktNaFirst();
+        } else sem_c.unlock();
+        
+        sem_b.lock();
+        if (barier_1_count < max_vlaken) {
+            barier_1_count++;
+        } else {
+            pokrac_v_cyklu = true;
+            barier_2_count = 0;
+            barier_1_count = 0;
+            barier_1.lock();
+            barier_2.unlock();
         }
+        sem_b.unlock();
+        
+        barier_2.lock();
+        barier_2.unlock();
+        
+//------------------------------------------------------------------------------
         smazErrStavy();
+        
+        sem_c.lock();
+        if (barier_2_count == 0) {
+            barier_2_count++;
+            sem_c.unlock();
+            m_list.nastavAktNaFirst();
+            m_posun = true;
+            this->posun();
+            if (m_posun) m_vstup = scan->nactiDalsi();
+            m_list.nastavAktNaFirst();
+        } else sem_c.unlock();
+        
+        sem_b.lock();
+        if (barier_1_count < max_vlaken) {
+            barier_1_count++;
+        } else {
+            pokrac_v_cyklu = true;
+            barier_2_count = 0;
+            barier_1_count = 0;
+            barier_1.lock();
+            barier_2.unlock();
+        }
+        sem_b.unlock();
+        
+        barier_2.lock();
+        barier_2.unlock();
+//------------------------------------------------------------------------------        
         posunVstup();
-        m_list.nastavAktNaFirst();
+        
+        sem_b.lock();
+        if (barier_1_count < max_vlaken) {
+            barier_1_count++;
+        } else {
+            pokrac_v_cyklu = true;
+            m_list.nastavAktNaFirst();
+            barier_2_count = 0;
+            barier_1_count = 0;
+            barier_2.unlock();
+        }
+        sem_b.unlock();
+        
+        barier_2.lock();
+        barier_2.unlock();
+        
     } while (!m_list.isEmpty() && !m_konec);
 }
 
