@@ -1,4 +1,4 @@
-/* 
+/*
  * File:   main.cpp
  * Author: Lukáš Junek
  *
@@ -94,7 +94,17 @@ int main(int argc, char** argv) {
     
     while (!cin.eof()) {
         cout << "Zadejte vstupni retezec: ";
-        cin >> vstup;       
+        cin >> vstup;
+        
+        
+        /*
+         using namespace std::chrono;
+         milliseconds start = duration_cast< milliseconds >(
+         system_clock::now().time_since_epoch()
+         );
+         */
+        
+        
         Parser *prekladac = new Parser(zrychlovac);
         
         vysledek = prekladac->nastavRetezec(vstup);
@@ -108,6 +118,16 @@ int main(int argc, char** argv) {
         //vysledek = */prekladac->provedPreklad(vstup); 
         // vysledek = -2;
         delete prekladac;
+        
+        /*
+         milliseconds end = duration_cast< milliseconds >(
+         system_clock::now().time_since_epoch()
+         );
+         
+         std::chrono::duration<double> elapsed_seconds = end-start;
+         std::cout << "elapsed time: " << elapsed_seconds.count() << "s\n";
+         */
+        
         if (vysledek == -2) {
             cout << "Retezec obsahuje spatne znaky" << endl;
         } 
@@ -156,4 +176,3 @@ int main(int argc, char** argv) {
     //delete prekladac;       
     return 0;
 }
-
