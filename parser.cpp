@@ -82,6 +82,7 @@ int Parser::redukuj(Vlakno *p_vlakno){
         
         sem_a.lock();
         m_list.pridejNaKonec(pomVlakno); 
+        cout << "pridavam REDUKUJ pomVlakno\n";
         if ((m_list.vratPocPolozek() - m_list.vratAktualniPozici()) == 1) barier_1.unlock();
         sem_a.unlock();
         
@@ -100,6 +101,7 @@ int Parser::redukuj(Vlakno *p_vlakno){
         
         sem_a.lock();
         m_list.pridejNaKonec(pomVlakno2);
+        cout << "pridavam REDUKUJ pomVlakno2\n";
         if ((m_list.vratPocPolozek() - m_list.vratAktualniPozici()) == 1) barier_1.unlock();
         sem_a.unlock();
         
@@ -218,6 +220,7 @@ bool Parser::rozdel(Vlakno *p_vlakno,akce p_akce[SLP_ALFA], int p_vstupy[SLP_ALF
 
                 sem_a.lock();
                 m_list.pridejNaKonec(pomVlakno2);
+                cout << "pridavam ROZDEL pomVlakno2\n";
                 if ((m_list.vratPocPolozek() - m_list.vratAktualniPozici()) == 1) barier_1.unlock();
                 sem_a.unlock();
             }  
@@ -239,12 +242,14 @@ bool Parser::rozdel(Vlakno *p_vlakno,akce p_akce[SLP_ALFA], int p_vstupy[SLP_ALF
 
                 sem_a.lock();
                 m_list.pridejNaKonec(pomVlakno3);
+                cout << "pridavam ROZDEL pomVlakno3\n";
                 if ((m_list.vratPocPolozek() - m_list.vratAktualniPozici()) == 1) barier_1.unlock();
                 sem_a.unlock();
             }
         }
         sem_a.lock();
         m_list.pridejNaKonec(pomVlakno);
+        cout << "pridavam ROZDEL pomVlakno\n";
         if ((m_list.vratPocPolozek() - m_list.vratAktualniPozici()) == 1) barier_1.unlock();
         sem_a.unlock();
     }
@@ -330,6 +335,7 @@ void Parser::krokPrekladu(Vlakno *p_vlakno){
             pomVlakno->m_polozka.konflikt = false;
             sem_a.lock();
             m_list.pridejNaKonec(pomVlakno);
+            cout << "pridavam REDUCE/SHIFT\n";
             if ((m_list.vratPocPolozek() - m_list.vratAktualniPozici()) == 1) barier_1.unlock();
             sem_a.unlock();
         }
@@ -395,7 +401,7 @@ void Parser::smazErrStavy(){
             sem_a.unlock();
             
             sem_b.lock();
-            if (barier_1_count < max_vlaken) {
+            if (barier_1_count < (max_vlaken-1)) {
                 barier_1_count++;
             } else {
                 pokrac_v_cyklu = false;
@@ -462,7 +468,7 @@ void Parser::posunVstup() {
             sem_a.unlock();
             
             sem_b.lock();
-            if (barier_1_count < max_vlaken) {
+            if (barier_1_count < (max_vlaken-1)) {
                 barier_1_count++;
             } else {
                 pokrac_v_cyklu = false;
@@ -522,12 +528,17 @@ void Parser::provedPreklad(){
         // krok prekladu -------------------------------------------------------
         while (pokrac_v_cyklu) {
             sem_a.lock();
+            cout << "sem tu\n";
             if (m_list.vratAktualniPozici() < m_list.vratPocPolozek()){
+                
+                cout << "cisla: " << m_list.vratAktualniPozici() << m_list.vratPocPolozek() << endl; ///--------
+                
                 pomVlakno = m_list.vratAkt();
                 m_list.aktRight();
+                cout << "zamkni barieru\n";
                 if (m_list.vratAktualniPozici() >= m_list.vratPocPolozek()) barier_1.lock();
                 sem_a.unlock();
-                
+                cout << "jdu na preklad\n";
                 if (pomVlakno->m_err_stav != END) {
                     krokPrekladu(pomVlakno);
                 }
@@ -535,7 +546,7 @@ void Parser::provedPreklad(){
                 sem_a.unlock();
                 
                 sem_b.lock();
-                if (barier_1_count < max_vlaken) {
+                if (barier_1_count < (max_vlaken-1)) {
                     barier_1_count++;
                 } else {
                     pokrac_v_cyklu = false;
@@ -543,7 +554,7 @@ void Parser::provedPreklad(){
                     barier_1.unlock();
                 }
                 sem_b.unlock();
-                
+                cout << "cekam" << endl;
                 barier_1.lock();
                 barier_1.unlock();
                 
@@ -552,7 +563,7 @@ void Parser::provedPreklad(){
                 sem_b.unlock();
             }
         }
-        
+        cout << "konec\n";
         // konec ---------------------------------------------------------------
         sem_c.lock();
         if (barier_2_count == 0) {
@@ -564,8 +575,10 @@ void Parser::provedPreklad(){
             m_list.nastavAktNaFirst();
         } else sem_c.unlock();
         
+        cout << "po jeKonec\n";
+        
         sem_b.lock();
-        if (barier_1_count < max_vlaken) {
+        if (barier_1_count < (max_vlaken - 1)) {
             barier_1_count++;
         } else {
             pokrac_v_cyklu = true;
@@ -575,10 +588,10 @@ void Parser::provedPreklad(){
             barier_2.unlock();
         }
         sem_b.unlock();
-        
+        cout << "cekam na 2.bariere\n";
         barier_2.lock();
         barier_2.unlock();
-        
+        cout << "po 2.bariere\n";
 //------------------------------------------------------------------------------
         smazErrStavy();
         
@@ -593,8 +606,10 @@ void Parser::provedPreklad(){
             m_list.nastavAktNaFirst();
         } else sem_c.unlock();
         
+        cout << "po posun\n";
+        
         sem_b.lock();
-        if (barier_1_count < max_vlaken) {
+        if (barier_1_count < (max_vlaken-1)) {
             barier_1_count++;
         } else {
             pokrac_v_cyklu = true;
@@ -607,11 +622,13 @@ void Parser::provedPreklad(){
         
         barier_2.lock();
         barier_2.unlock();
+        
+        cout << "po 3. bariere\n";
 //------------------------------------------------------------------------------        
         posunVstup();
         
         sem_b.lock();
-        if (barier_1_count < max_vlaken) {
+        if (barier_1_count < (max_vlaken-1)) {
             barier_1_count++;
         } else {
             pokrac_v_cyklu = true;

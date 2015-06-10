@@ -104,15 +104,15 @@ int main(int argc, char** argv) {
          );
          */
         
-        
         Parser *prekladac = new Parser(zrychlovac);
         
         vysledek = prekladac->nastavRetezec(vstup);
         
         if (vysledek != -2) {
         
-            thread t1(&Parser::provedPreklad,prekladac);        
-            t1.join();
+            //thread t1(&Parser::provedPreklad,prekladac);        
+            //t1.join();
+            prekladac->provedPreklad();
         }
         vysledek = prekladac->zjistiVysledky();
         //vysledek = */prekladac->provedPreklad(vstup); 

@@ -110,14 +110,14 @@ void List::nastavAktNaFirst() {
 void List::aktLeft() {
     if (m_akt != 0) {
         m_akt = m_akt->left;
-        m_act_pozice++;
+        m_act_pozice--;
     }
 }
 
 void List::aktRight() {
     if (m_akt != 0) {
         m_akt = m_akt->right;
-        m_act_pozice--;
+        m_act_pozice++;
     }
 }
 
