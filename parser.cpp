@@ -525,20 +525,20 @@ void Parser::provedPreklad(){
     
     // hlavní cyklus
     do {
+        cout << "na zacatku ---------------------------------------------------\n";
         // krok prekladu -------------------------------------------------------
         while (pokrac_v_cyklu) {
             sem_a.lock();
             cout << "sem tu\n";
-            if (m_list.vratAktualniPozici() < m_list.vratPocPolozek()){
+            if ((m_list.vratAktualniPozici() < m_list.vratPocPolozek()) && m_list.vratAkt() != 0){
                 
                 cout << "cisla: " << m_list.vratAktualniPozici() << m_list.vratPocPolozek() << endl; ///--------
                 
                 pomVlakno = m_list.vratAkt();
                 m_list.aktRight();
-                cout << "zamkni barieru\n";
                 if (m_list.vratAktualniPozici() >= m_list.vratPocPolozek()) barier_1.lock();
                 sem_a.unlock();
-                cout << "jdu na preklad\n";
+                cout << "jdu na preklad: " << pomVlakno << "\n";
                 if (pomVlakno->m_err_stav != END) {
                     krokPrekladu(pomVlakno);
                 }
@@ -549,12 +549,12 @@ void Parser::provedPreklad(){
                 if (barier_1_count < (max_vlaken-1)) {
                     barier_1_count++;
                 } else {
+                    barier_1_count++;
                     pokrac_v_cyklu = false;
                     barier_2.lock();
                     barier_1.unlock();
                 }
                 sem_b.unlock();
-                cout << "cekam" << endl;
                 barier_1.lock();
                 barier_1.unlock();
                 
@@ -576,7 +576,7 @@ void Parser::provedPreklad(){
         } else sem_c.unlock();
         
         cout << "po jeKonec\n";
-        
+        cout << "bar_count: " << barier_1_count << endl;
         sem_b.lock();
         if (barier_1_count < (max_vlaken - 1)) {
             barier_1_count++;
