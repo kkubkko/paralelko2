@@ -14,9 +14,12 @@
 #include "tab/lrtab_b.h"
 #include "parser.h"
 #include "vlakno.h"
-
+#include <iostream>
+#include <chrono>
 
 using namespace std;
+using namespace std::chrono;
+
 
 /*
 TESTOVACÍ ŘETĚZCE:
@@ -96,13 +99,7 @@ int main(int argc, char** argv) {
         cout << "Zadejte vstupni retezec: ";
         cin >> vstup;
         
-        
-        /*
-         using namespace std::chrono;
-         milliseconds start = duration_cast< milliseconds >(
-         system_clock::now().time_since_epoch()
-         );
-         */
+        high_resolution_clock::time_point t1 = high_resolution_clock::now();
         
         Parser *prekladac = new Parser(zrychlovac);
         
@@ -119,14 +116,12 @@ int main(int argc, char** argv) {
         // vysledek = -2;
         delete prekladac;
         
-        /*
-         milliseconds end = duration_cast< milliseconds >(
-         system_clock::now().time_since_epoch()
-         );
-         
-         std::chrono::duration<double> elapsed_seconds = end-start;
-         std::cout << "elapsed time: " << elapsed_seconds.count() << "s\n";
-         */
+        
+        high_resolution_clock::time_point t2 = high_resolution_clock::now();
+        
+        auto duration = std::chrono::duration_cast<std::chrono::microseconds>( t2 - t1 ).count();
+        
+        cout << "SPOTREBOVANY CAS:" << duration << "\n";
         
         if (vysledek == -2) {
             cout << "Retezec obsahuje spatne znaky" << endl;
