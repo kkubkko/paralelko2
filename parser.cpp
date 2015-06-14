@@ -24,6 +24,7 @@ Parser::Parser(bool p_urychlovac) {
     
     barier_1_count = 0;
     barier_2_count = 0;
+    cykl_count = 0;
     pokrac_v_cyklu = true;
 
 }
@@ -379,6 +380,7 @@ void Parser::krokPrekladu(Vlakno *p_vlakno){
 void Parser::smazErrStavy(){
     Vlakno *pomVlakno;
     polozka* pomPrv;
+//    cout << "jsem v smazErrStavy\n";
     while (pokrac_v_cyklu) {
         sem_a.lock();
         if (m_list.vratAktualniPozici() < m_list.vratPocPolozek()) {
@@ -401,17 +403,22 @@ void Parser::smazErrStavy(){
             sem_a.unlock();
             
             sem_b.lock();
-            if (barier_1_count < (max_vlaken-1)) {
-                barier_1_count++;
+            if (cykl_count < (max_vlaken-1)) {
+                cykl_count++;
             } else {
+                cykl_count++;
                 pokrac_v_cyklu = false;
                 barier_2.lock();
                 barier_1.unlock();
             }
             sem_b.unlock();
-            
+//            cout << "barier_1 count: " << barier_1_count << endl;
             barier_1.lock();
-            barier_1.unlock();            
+            barier_1.unlock(); 
+//            cout << "jsem za barierou\n";
+            sem_b.lock();
+            cykl_count--;
+            sem_b.unlock();
         }        
     }
 }
@@ -468,9 +475,10 @@ void Parser::posunVstup() {
             sem_a.unlock();
             
             sem_b.lock();
-            if (barier_1_count < (max_vlaken-1)) {
-                barier_1_count++;
+            if (cykl_count < (max_vlaken-1)) {
+                cykl_count++;
             } else {
+                cykl_count++;
                 pokrac_v_cyklu = false;
                 barier_2.lock();
                 barier_1.unlock();
@@ -479,6 +487,10 @@ void Parser::posunVstup() {
             
             barier_1.lock();
             barier_1.unlock();
+            
+            sem_b.lock();
+            cykl_count--;
+            sem_b.unlock();
         }
     }
 }
@@ -546,10 +558,12 @@ void Parser::provedPreklad(){
                 sem_a.unlock();
                 
                 sem_b.lock();
-                if (barier_1_count < (max_vlaken-1)) {
-                    barier_1_count++;
+                if (cykl_count < (max_vlaken-1)) {
+                    cykl_count++;
                 } else {
-                    barier_1_count++;
+                    barier_1_count = 0;
+                    cykl_count++;
+//                    cout << "bar_count: " << barier_1_count << endl;
                     pokrac_v_cyklu = false;
                     barier_2.lock();
                     barier_1.unlock();
@@ -559,7 +573,7 @@ void Parser::provedPreklad(){
                 barier_1.unlock();
                 
                 sem_b.lock();
-                barier_1_count--;
+                cykl_count--;
                 sem_b.unlock();
             }
         }
@@ -573,14 +587,16 @@ void Parser::provedPreklad(){
             m_konec = true;
             jeKonec();
             m_list.nastavAktNaFirst();
+//            cout << "je konec\n";
         } else sem_c.unlock();
         
 //        cout << "po jeKonec\n";
-//        cout << "bar_count: " << barier_1_count << endl;
+//        cout << "bar_count2: " << barier_1_count << endl;
         sem_b.lock();
         if (barier_1_count < (max_vlaken - 1)) {
             barier_1_count++;
         } else {
+//            cout << "odemikam\n";
             pokrac_v_cyklu = true;
             barier_2_count = 0;
             barier_1_count = 0;
@@ -588,6 +604,7 @@ void Parser::provedPreklad(){
             barier_2.unlock();
         }
         sem_b.unlock();
+//        cout << "bar_count3: " << barier_1_count << endl;
 //        cout << "cekam na 2.bariere\n";
         barier_2.lock();
         barier_2.unlock();

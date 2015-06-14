@@ -39,9 +39,6 @@ private:
     mutex sem_c;
     mutex barier_1;
     mutex barier_2;
-    int barier_1_count;
-    int barier_2_count;
-    bool pokrac_v_cyklu;
     
     Vlakno *vlakno;
     LRtabulka *tb_alfa;

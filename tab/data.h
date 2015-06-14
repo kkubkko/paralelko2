@@ -55,7 +55,11 @@ struct stack_polozka {
 const int zd_stav = -1;
 const int zd_pravidlo = -1;
 
-const int max_vlaken = 1;
+const int max_vlaken = 2;
+int barier_1_count;
+int barier_2_count;
+int cykl_count;
+bool pokrac_v_cyklu;
 
 // definování maximální tolerance
 const int max_vzdalenost = 5;

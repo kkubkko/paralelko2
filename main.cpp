@@ -94,6 +94,7 @@ int main(int argc, char** argv) {
     int vysledek;
     string vysledek_src;
     //vstup = "fgbhcea";
+    thread t[max_vlaken];
     
     while (!cin.eof()) {
         cout << "Zadejte vstupni retezec: ";
@@ -107,9 +108,15 @@ int main(int argc, char** argv) {
         
         if (vysledek != -2) {
         
+            for (int pom_i = 0; pom_i < max_vlaken; pom_i++) {
+                t[pom_i] = thread(&Parser::provedPreklad,prekladac);
+            }
             //thread t1(&Parser::provedPreklad,prekladac);        
             //t1.join();
-            prekladac->provedPreklad();
+            //prekladac->provedPreklad();
+            for (int pom_i = 0; pom_i < max_vlaken; pom_i++) {
+                t[pom_i].join();
+            }
         }
         vysledek = prekladac->zjistiVysledky();
         //vysledek = */prekladac->provedPreklad(vstup); 
