@@ -107,13 +107,13 @@ int main(int argc, char** argv) {
         vysledek = prekladac->nastavRetezec(vstup);
         
         if (vysledek != -2) {
-        
             for (int pom_i = 0; pom_i < max_vlaken; pom_i++) {
                 t[pom_i] = thread(&Parser::provedPreklad,prekladac);
             }
-            //thread t1(&Parser::provedPreklad,prekladac);        
+            //thread t1(&Parser::provedPreklad,prekladac);
             //t1.join();
             //prekladac->provedPreklad();
+            //cout << "MAX VLAKEN :" << max_vlaken;
             for (int pom_i = 0; pom_i < max_vlaken; pom_i++) {
                 t[pom_i].join();
             }

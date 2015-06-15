@@ -34,6 +34,10 @@ private:
     bool m_konec;
     bool m_posun;
     
+    int barier_1_count;
+    int barier_2_count;
+    bool pokrac_v_cyklu;
+    
     mutex sem_a;
     mutex sem_b;
     mutex sem_c;
