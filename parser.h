@@ -60,6 +60,8 @@ private:
     void posunVstup();
     void jeKonec();
     
+    void posunKonec();
+    
     bool prebytek(Vlakno *p_vlakno);
     bool chybyVstup(Vlakno *p_vlakno,akce p_akce[SLP_ALFA], int p_vstupy[SLP_ALFA], int p_poc_res);
     bool rozdel(Vlakno *p_vlakno,akce p_akce[SLP_ALFA], int p_vstupy[SLP_ALFA], int p_stavy[SLP_ALFA], int p_poc_res);
