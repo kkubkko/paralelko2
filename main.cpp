@@ -79,6 +79,65 @@ dbhacg dhfceg dfcbea dhfcge
 -deformované, otočené:
 fbhag fhag fgbhcea fbcehcag
  */
+string vstupniPole[50];
+int poleVysledku[50];
+mutex semaphore1;
+mutex bariera1;
+mutex bariera2;
+int pom_i = 0, pom_j = 0;
+int pocitadlo = 0;
+int vysledek = 0;
+
+
+Parser *prekladac = new Parser(false);
+
+void spousteci_funkce(){
+    
+    while (pocitadlo < 50) {
+        semaphore1.lock();
+        if (pom_i < 1) {
+            pom_i++;
+            prekladac->newInit();
+            vysledek = prekladac->nastavRetezec(vstupniPole[pocitadlo]);
+            bariera1.lock();
+        }
+        semaphore1.unlock();
+        
+        if (vysledek != -2) prekladac->provedPreklad();
+        
+        semaphore1.lock();
+        if (pom_j < (max_vlaken-1)) {
+            pom_j++;
+        } else {
+            //pom_j++;
+            vysledek = prekladac->zjistiVysledky();
+            poleVysledku[pocitadlo] = vysledek;
+            pocitadlo++;
+            bariera2.lock();
+            bariera1.unlock();
+        }
+        semaphore1.unlock();
+        
+        bariera1.lock();
+        bariera1.unlock();
+        
+        semaphore1.lock();
+        if (pom_j > 0) {
+            pom_j--;
+        } else {
+            pom_i = 0;
+            pom_j = 0;
+            vysledek = 0;
+            bariera2.unlock();
+        }
+        semaphore1.unlock();
+        
+        bariera2.lock();
+        bariera2.unlock();     
+    }   
+}
+
+
 int main(int argc, char** argv) {
     string vstup;
     bool zrychlovac = false;
@@ -91,24 +150,28 @@ int main(int argc, char** argv) {
         }
     }
     //Parser *prekladac = new Parser(zrychlovac);
-    int vysledek;
-    string vysledek_src;
+    //int vysledek;
+    //string vysledek_src;
     //vstup = "fgbhcea";
     thread t[max_vlaken];
     
-    while (!cin.eof()) {
-        cout << "Zadejte vstupni retezec: ";
-        cin >> vstup;
+//    while (!cin.eof()) {
+        //cout << "Zadejte vstupni retezec: ";
+        //cin >> vstup;
+    
+    for (int i = 0; i < 50; i++){
+        vstupniPole[i] = "d";
+    }
         
         high_resolution_clock::time_point t1 = high_resolution_clock::now();
         
-        Parser *prekladac = new Parser(zrychlovac);
+        //Parser *prekladac = new Parser(zrychlovac);        
+        //vysledek = prekladac->nastavRetezec(vstup);
         
-        vysledek = prekladac->nastavRetezec(vstup);
-        
-        if (vysledek != -2) {
+        //if (vysledek != -2) {
             for (int pom_i = 0; pom_i < max_vlaken; pom_i++) {
-                t[pom_i] = thread(&Parser::provedPreklad,prekladac);
+                //t[pom_i] = thread(&Parser::provedPreklad,prekladac);
+                t[pom_i] = thread(spousteci_funkce);
             }
             //thread t1(&Parser::provedPreklad,prekladac);
             //t1.join();
@@ -117,11 +180,11 @@ int main(int argc, char** argv) {
             for (int pom_i = 0; pom_i < max_vlaken; pom_i++) {
                 t[pom_i].join();
             }
-        }
-        vysledek = prekladac->zjistiVysledky();
+        //}
+        //vysledek = prekladac->zjistiVysledky();
         //vysledek = */prekladac->provedPreklad(vstup); 
         // vysledek = -2;
-        delete prekladac;
+        //delete prekladac;
         
         
         high_resolution_clock::time_point t2 = high_resolution_clock::now();
@@ -129,7 +192,7 @@ int main(int argc, char** argv) {
         auto duration = std::chrono::duration_cast<std::chrono::microseconds>( t2 - t1 ).count();
         
         cout << "SPOTREBOVANY CAS:" << duration << "\n";
-        
+/*        
         if (vysledek == -2) {
             cout << "Retezec obsahuje spatne znaky" << endl;
         } 
@@ -174,7 +237,7 @@ int main(int argc, char** argv) {
         cout << "vysledkek prekladu je: " << vysledek_src << endl;
        
         
-    }
-    //delete prekladac;       
+//    }
+    //delete prekladac; */      
     return 0;
 }

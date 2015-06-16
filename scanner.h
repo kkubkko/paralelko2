@@ -34,6 +34,7 @@ public:
     int nastavNaZacatek();
     int vratPocZbRetezce();
     void vstupniRetezec(string p_vstup);
+    void newInit();
 };
 
 #endif	/* SCANNER_H */

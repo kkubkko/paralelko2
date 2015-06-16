@@ -73,6 +73,7 @@ public:
     int nastavRetezec(string p_vstup_string);
     void provedPreklad();
     int zjistiVysledky();
+    void newInit();
     ~Parser();
 
 

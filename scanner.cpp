@@ -10,6 +10,10 @@
 Scanner::Scanner() {
     m_vstup = "";
 }
+
+void Scanner::newInit(){
+    m_vstup = "";
+}
 /*
  * Funkce načítá vstupní řetězec.
  */
