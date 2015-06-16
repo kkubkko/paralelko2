@@ -572,7 +572,7 @@ void Parser::provedPreklad(){
     
     // hlavní cyklus
     do {
-        cout << "na zacatku ---------------------------------------------------\n";
+ //       cout << "na zacatku ---------------------------------------------------\n";
         // krok prekladu -------------------------------------------------------
         while (pokrac_v_cyklu) {
             
@@ -630,7 +630,7 @@ void Parser::provedPreklad(){
                     barier_1.unlock();
                 }
                 sem_b.unlock();
-                cout << "Pred prvni barierou!\n";
+      //          cout << "Pred prvni barierou!\n";
                 barier_1.lock();
                 barier_1.unlock();
                 
@@ -639,7 +639,7 @@ void Parser::provedPreklad(){
 //                sem_b.unlock();
             }
         }
-        cout << "konec vsech kroku\n";
+  //      cout << "konec vsech kroku\n";
 // konec ---------------------------------------------------------------
 /*
         sem_c.lock();
@@ -668,14 +668,14 @@ void Parser::provedPreklad(){
         }
         sem_b.unlock();
 //        cout << "bar_count3: " << barier_1_count << endl;
-        cout << "cekam na 2.bariere\n";
+ //       cout << "cekam na 2.bariere\n";
         barier_2.lock();
         barier_2.unlock();
 //        cout << "po 2.bariere\n";
 //------------------------------------------------------------------------------
 //        smazErrStavy();
         
-        cout << "po 2.bariere2\n";
+//        cout << "po 2.bariere2\n";
 /*        
         sem_c.lock();
         if (barier_2_count == 0) {
@@ -729,9 +729,9 @@ void Parser::provedPreklad(){
 
             barier_2.lock();
             barier_2.unlock();
-            cout << "po 4. bariere\n";
+       //     cout << "po 4. bariere\n";
         }
-        cout << "tocim znova: m_list: " << m_list.isEmpty() << ", m_konec: " << m_konec << endl;
+//        cout << "tocim znova: m_list: " << m_list.isEmpty() << ", m_konec: " << m_konec << endl;
         sem_a.lock();
         if (m_list.isEmpty() && pokrac_v_hlav_cyklu){
 //            sem_b.lock();
@@ -743,7 +743,7 @@ void Parser::provedPreklad(){
         }
         sem_a.unlock();
     } while (pokrac_v_hlav_cyklu && !m_konec);
-    cout << "Vlakno konci\n";
+//    cout << "Vlakno konci\n";
 }
 
 
