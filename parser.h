@@ -38,6 +38,8 @@ private:
     int barier_2_count;
     bool pokrac_v_cyklu;
     bool pokrac_v_hlav_cyklu;
+    bool bude_posun;
+    bool preklad_pokrac;
     
     mutex sem_a;
     mutex sem_b;

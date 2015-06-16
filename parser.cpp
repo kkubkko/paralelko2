@@ -17,7 +17,7 @@ int cykl_count;
 Parser::Parser(bool p_urychlovac) {
 
     m_vstup = -1;
-    m_konec = false;
+    m_konec = true;;
     m_posun = true;
     tb_alfa = new LRtabulka();
     tb_beta = new LRtabulka_beta();
@@ -29,6 +29,8 @@ Parser::Parser(bool p_urychlovac) {
     cykl_count = 0;
     pokrac_v_cyklu = true;
     pokrac_v_hlav_cyklu = true;
+    bude_posun = false;
+    preklad_pokrac = true;
 
 }
 /*
@@ -606,6 +608,21 @@ void Parser::provedPreklad(){
                 // KONEC MAZANI
                 
                 
+                // POSUN , KONEC
+                sem_c.lock();
+                if (m_konec || m_posun) {
+                    if (pomVlakno->m_err_stav != END) {
+                        m_konec = false;
+                    }
+                    if (pomVlakno->m_err_stav != WAIT_SHIFT) {
+                        if (pomVlakno->m_err_stav != ERR_MISS && pomVlakno->m_err_stav != ERR_WAIT && pomVlakno->m_err_stav != END) {
+                            m_posun = false;
+                        }           
+                    }
+                }
+                sem_c.unlock();
+                
+                
             } else {
                 sem_a.unlock();
                 
@@ -614,18 +631,22 @@ void Parser::provedPreklad(){
                     cykl_count++;
                 } else {
                     barier_1_count = 0;
-                    //cykl_count++;
                     cykl_count = 0;
-                    //cout << "bar_count: " << barier_1_count << endl;
                     pokrac_v_cyklu = false;
+
                     
                     m_list.nastavAktNaFirst();
+                    if (m_konec) {
+                        preklad_pokrac = false;
+                    }
+                    if (m_posun) {
+                        bude_posun = true;
+                    }
                     m_konec = true; m_posun = true;
-//            jeKonec();
-                    this->posunKonec();
+//                    this->posunKonec();
                     if (m_posun) m_vstup = scan->nactiDalsi();
-                    m_list.nastavAktNaFirst();
-                    
+//                    m_list.nastavAktNaFirst();
+                    cout << "jdu tudma\n";
                     barier_2.lock();
                     barier_1.unlock();
                 }
@@ -633,10 +654,6 @@ void Parser::provedPreklad(){
                 cout << "Pred prvni barierou!\n";
                 barier_1.lock();
                 barier_1.unlock();
-                
-//                sem_b.lock();
-//                cykl_count--;
-//                sem_b.unlock();
             }
         }
         cout << "konec vsech kroku\n";
@@ -648,14 +665,11 @@ void Parser::provedPreklad(){
             sem_c.unlock();
             m_list.nastavAktNaFirst();
             m_konec = true; m_posun = true;
-//            jeKonec();
             this->posunKonec();
             if (m_posun) m_vstup = scan->nactiDalsi();
             m_list.nastavAktNaFirst();
         } else sem_c.unlock();
 */        
-//        cout << "po jeKonec\n";
-//        cout << "bar_count2: " << barier_1_count << endl;
         sem_b.lock();
         if (barier_1_count < (max_vlaken - 1)) {
             barier_1_count++;
@@ -663,7 +677,6 @@ void Parser::provedPreklad(){
             pokrac_v_cyklu = true;
             barier_2_count = 0;
             barier_1_count = 0;
-//            barier_1.lock();
             barier_2.unlock();
         }
         sem_b.unlock();
@@ -671,54 +684,17 @@ void Parser::provedPreklad(){
         cout << "cekam na 2.bariere\n";
         barier_2.lock();
         barier_2.unlock();
-//        cout << "po 2.bariere\n";
+        cout << "po 2.bariere\n";
 //------------------------------------------------------------------------------
-//        smazErrStavy();
         
-        cout << "po 2.bariere2\n";
-/*        
-        sem_c.lock();
-        if (barier_2_count == 0) {
-            barier_2_count++;
-            sem_c.unlock();
-            m_list.nastavAktNaFirst();
-            m_posun = true;
-            this->posun();
-            if (m_posun) m_vstup = scan->nactiDalsi();
-            m_list.nastavAktNaFirst();
-        } else sem_c.unlock();
-*/        
- //       cout << "po posun\n";
-/*        
-        sem_b.lock();
-//        cout << "bariera: " << barier_1_count << ", max vlaken: "<< max_vlaken << endl;
-        if (barier_1_count < (max_vlaken-1)) {
-            barier_1_count++;
-        } else {
-            m_list.nastavAktNaFirst();
-            pokrac_v_cyklu = true;
-            barier_2_count = 0;
-            barier_1_count = 0;
-//            barier_1.try_lock();
-//            cout << "odemikam trojku\n";
-            barier_2.unlock();
-        }
-        sem_b.unlock();
-//        cout << "pred 3. barierou\n";
-        
-        barier_2.lock();
-//        cout << "prochazim trojkou\n";
-        barier_2.unlock();
-        
-//       cout << "po 3. bariere\n";*/
-//------------------------------------------------------------------------------        
-        if (m_posun) {
+        if (bude_posun) {
             posunVstup();
 
             sem_b.lock();
             if (barier_1_count < (max_vlaken-1)) {
                 barier_1_count++;
             } else {
+                bude_posun = false;
                 pokrac_v_cyklu = true;
                 m_list.nastavAktNaFirst();
                 barier_2_count = 0;
@@ -726,10 +702,10 @@ void Parser::provedPreklad(){
                 barier_2.unlock();
             }
             sem_b.unlock();
-
+            cout << "pred 3. bariere\n";
             barier_2.lock();
             barier_2.unlock();
-            cout << "po 4. bariere\n";
+            cout << "po 3. bariere\n";
         }
         cout << "tocim znova: m_list: " << m_list.isEmpty() << ", m_konec: " << m_konec << endl;
         sem_a.lock();
@@ -740,9 +716,9 @@ void Parser::provedPreklad(){
             barier_1.unlock();
             barier_2.unlock();
             pokrac_v_hlav_cyklu = false;
-        }
+        }        
         sem_a.unlock();
-    } while (pokrac_v_hlav_cyklu && !m_konec);
+    } while (pokrac_v_hlav_cyklu && preklad_pokrac);
     cout << "Vlakno konci\n";
 }
 
