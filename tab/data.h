@@ -58,7 +58,7 @@ const int max_vlaken = 2;
 
 
 // definování maximální tolerance
-const int max_vzdalenost = 5;
+const int max_vzdalenost = 15;
 
 // definování jednotlivých stavů
 enum stavy {
