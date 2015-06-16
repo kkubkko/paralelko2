@@ -28,6 +28,7 @@ Parser::Parser(bool p_urychlovac) {
     barier_2_count = 0;
     cykl_count = 0;
     pokrac_v_cyklu = true;
+    pokrac_v_hlav_cyklu = true;
 
 }
 /*
@@ -567,10 +568,11 @@ int Parser::nastavRetezec(string p_vstup_string){
 
 void Parser::provedPreklad(){
     Vlakno *pomVlakno;
+    polozka* pomPrv;
     
     // hlavní cyklus
     do {
-//        cout << "na zacatku ---------------------------------------------------\n";
+        cout << "na zacatku ---------------------------------------------------\n";
         // krok prekladu -------------------------------------------------------
         while (pokrac_v_cyklu) {
             
@@ -578,6 +580,7 @@ void Parser::provedPreklad(){
             sem_a.lock();
             if (/*m_list.vratAktualniPozici() < m_list.vratPocPolozek()) &&*/ m_list.vratAkt() != 0){
                 pomVlakno = m_list.vratAkt();
+                pomPrv = m_list.vratAktPrv();
                 m_list.aktRight();
 //                if (m_list.vratAktualniPozici() >= m_list.vratPocPolozek()) barier_1.lock();
                 if (!m_list.akt()) barier_1.lock();
@@ -588,6 +591,21 @@ void Parser::provedPreklad(){
                 if (pomVlakno->m_err_stav != END) {
                     krokPrekladu(pomVlakno);
                 }
+                
+                // NOVE PRIDANO MAZANI------------------------------------------
+                if (pomVlakno->m_vzdalenost > max_vzdalenost) {
+                    pomVlakno->m_err_stav = ERR_ERR;
+                }
+                // samotné mazání
+                if (pomVlakno->m_err_stav == ERR_ALFA_VSTUP || pomVlakno->m_err_stav == ERR_BETA_VSTUP 
+                    || pomVlakno->m_err_stav == ERR_RED || pomVlakno->m_err_stav == ERR_ERR) {
+                    sem_a.lock();
+                    m_list.smazPrv(pomPrv);
+                    sem_a.unlock();
+                }
+                // KONEC MAZANI
+                
+                
             } else {
                 sem_a.unlock();
                 
@@ -612,7 +630,7 @@ void Parser::provedPreklad(){
                     barier_1.unlock();
                 }
                 sem_b.unlock();
-                
+                cout << "Pred prvni barierou!\n";
                 barier_1.lock();
                 barier_1.unlock();
                 
@@ -621,7 +639,7 @@ void Parser::provedPreklad(){
 //                sem_b.unlock();
             }
         }
-//        cout << "konec vsech kroku\n";
+        cout << "konec vsech kroku\n";
 // konec ---------------------------------------------------------------
 /*
         sem_c.lock();
@@ -650,14 +668,14 @@ void Parser::provedPreklad(){
         }
         sem_b.unlock();
 //        cout << "bar_count3: " << barier_1_count << endl;
-//        cout << "cekam na 2.bariere\n";
+        cout << "cekam na 2.bariere\n";
         barier_2.lock();
         barier_2.unlock();
 //        cout << "po 2.bariere\n";
 //------------------------------------------------------------------------------
-        smazErrStavy();
+//        smazErrStavy();
         
-//        cout << "po 2.bariere2\n";
+        cout << "po 2.bariere2\n";
 /*        
         sem_c.lock();
         if (barier_2_count == 0) {
@@ -671,7 +689,7 @@ void Parser::provedPreklad(){
         } else sem_c.unlock();
 */        
  //       cout << "po posun\n";
-        
+/*        
         sem_b.lock();
 //        cout << "bariera: " << barier_1_count << ", max vlaken: "<< max_vlaken << endl;
         if (barier_1_count < (max_vlaken-1)) {
@@ -692,7 +710,7 @@ void Parser::provedPreklad(){
 //        cout << "prochazim trojkou\n";
         barier_2.unlock();
         
-//       cout << "po 3. bariere\n";
+//       cout << "po 3. bariere\n";*/
 //------------------------------------------------------------------------------        
         if (m_posun) {
             posunVstup();
@@ -711,10 +729,21 @@ void Parser::provedPreklad(){
 
             barier_2.lock();
             barier_2.unlock();
-//            cout << "po 4. bariere\n";
+            cout << "po 4. bariere\n";
         }
-        
-    } while (!m_list.isEmpty() && !m_konec);
+        cout << "tocim znova: m_list: " << m_list.isEmpty() << ", m_konec: " << m_konec << endl;
+        sem_a.lock();
+        if (m_list.isEmpty() && pokrac_v_hlav_cyklu){
+//            sem_b.lock();
+            pokrac_v_cyklu = false;
+//            sem_b.unlock();
+            barier_1.unlock();
+            barier_2.unlock();
+            pokrac_v_hlav_cyklu = false;
+        }
+        sem_a.unlock();
+    } while (pokrac_v_hlav_cyklu && !m_konec);
+    cout << "Vlakno konci\n";
 }
 
 
