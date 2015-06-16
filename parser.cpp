@@ -590,7 +590,7 @@ void Parser::provedPreklad(){
     
     // hlavní cyklus
     do {
-//        cout << "na zacatku ---------------------------------------------------\n";
+ //       cout << "na zacatku ---------------------------------------------------\n";
         // krok prekladu -------------------------------------------------------
         while (pokrac_v_cyklu) {
             
@@ -660,17 +660,17 @@ void Parser::provedPreklad(){
                     m_konec = true; m_posun = true;
                     if (bude_posun) m_vstup = scan->nactiDalsi();
                     m_list.nastavAktNaFirst();
-//                    cout << "jdu tudma\n";
+                    //cout << "jdu tudma\n";
                     barier_2.lock();
                     barier_1.unlock();
                 }
                 sem_b.unlock();
- //               cout << "Pred prvni barierou!\n";
+      //          cout << "Pred prvni barierou!\n";
                 barier_1.lock();
                 barier_1.unlock();
             }
         }
-//        cout << "konec vsech kroku\n";
+  //      cout << "konec vsech kroku\n";
 // konec ---------------------------------------------------------------
 /*
         sem_c.lock();
@@ -695,12 +695,48 @@ void Parser::provedPreklad(){
         }
         sem_b.unlock();
 //        cout << "bar_count3: " << barier_1_count << endl;
-//        cout << "cekam na 2.bariere\n";
+ //       cout << "cekam na 2.bariere\n";
         barier_2.lock();
         barier_2.unlock();
 //        cout << "po 2.bariere\n";
 //------------------------------------------------------------------------------
+//        cout << "po 2.bariere2\n";
+/*        
+        sem_c.lock();
+        if (barier_2_count == 0) {
+            barier_2_count++;
+            sem_c.unlock();
+            m_list.nastavAktNaFirst();
+            m_posun = true;
+            this->posun();
+            if (m_posun) m_vstup = scan->nactiDalsi();
+            m_list.nastavAktNaFirst();
+        } else sem_c.unlock();
+*/        
+ //       cout << "po posun\n";
+/*        
+        sem_b.lock();
+//        cout << "bariera: " << barier_1_count << ", max vlaken: "<< max_vlaken << endl;
+        if (barier_1_count < (max_vlaken-1)) {
+            barier_1_count++;
+        } else {
+            m_list.nastavAktNaFirst();
+            pokrac_v_cyklu = true;
+            barier_2_count = 0;
+            barier_1_count = 0;
+//            barier_1.try_lock();
+//            cout << "odemikam trojku\n";
+            barier_2.unlock();
+        }
+        sem_b.unlock();
+//        cout << "pred 3. barierou\n";
         
+        barier_2.lock();
+//        cout << "prochazim trojkou\n";
+        barier_2.unlock();
+        
+//       cout << "po 3. bariere\n";*/
+//------------------------------------------------------------------------------
         if (bude_posun) {
             posunVstup();
 
@@ -716,10 +752,9 @@ void Parser::provedPreklad(){
                 barier_2.unlock();
             }
             sem_b.unlock();
-//            cout << "pred 3. bariere\n";
+            //cout << "pred 3. bariere\n";
             barier_2.lock();
             barier_2.unlock();
-//            cout << "po 3. bariere\n";
         }
 //        cout << "tocim znova: m_list: " << m_list.isEmpty() << ", m_konec: " << m_konec << endl;
         sem_a.lock();
@@ -733,7 +768,7 @@ void Parser::provedPreklad(){
         }        
         sem_a.unlock();
     } while (pokrac_v_hlav_cyklu && preklad_pokrac);
-//    cout << "Vlakno konci\n";
+    //cout << "Vlakno konci\n";
 }
 
 
