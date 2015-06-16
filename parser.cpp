@@ -589,24 +589,9 @@ void Parser::provedPreklad(){
                 sem_a.unlock();
                 
                 
-//                cout << "jdu na preklad: " << pomVlakno << "\n";
                 if (pomVlakno->m_err_stav != END) {
                     krokPrekladu(pomVlakno);
                 }
-                
-                // NOVE PRIDANO MAZANI------------------------------------------
-                if (pomVlakno->m_vzdalenost > max_vzdalenost) {
-                    pomVlakno->m_err_stav = ERR_ERR;
-                }
-                // samotné mazání
-                if (pomVlakno->m_err_stav == ERR_ALFA_VSTUP || pomVlakno->m_err_stav == ERR_BETA_VSTUP 
-                    || pomVlakno->m_err_stav == ERR_RED || pomVlakno->m_err_stav == ERR_ERR) {
-                    sem_a.lock();
-                    m_list.smazPrv(pomPrv);
-                    sem_a.unlock();
-                }
-                // KONEC MAZANI
-                
                 
                 // POSUN , KONEC
                 sem_c.lock();
@@ -622,6 +607,18 @@ void Parser::provedPreklad(){
                 }
                 sem_c.unlock();
                 
+                // NOVE PRIDANO MAZANI------------------------------------------
+                if (pomVlakno->m_vzdalenost > max_vzdalenost) {
+                    pomVlakno->m_err_stav = ERR_ERR;
+                }
+                // samotné mazání
+                if (pomVlakno->m_err_stav == ERR_ALFA_VSTUP || pomVlakno->m_err_stav == ERR_BETA_VSTUP 
+                    || pomVlakno->m_err_stav == ERR_RED || pomVlakno->m_err_stav == ERR_ERR) {
+                    sem_a.lock();
+                    m_list.smazPrv(pomPrv);
+                    sem_a.unlock();
+                }  
+                // MAZANI
                 
             } else {
                 sem_a.unlock();
@@ -635,7 +632,9 @@ void Parser::provedPreklad(){
                     pokrac_v_cyklu = false;
 
                     
-                    m_list.nastavAktNaFirst();
+//                    m_list.nastavAktNaFirst();
+//                    m_konec = true; m_posun = true;
+//                    this->posunKonec();
                     if (m_konec) {
                         preklad_pokrac = false;
                     }
@@ -643,9 +642,8 @@ void Parser::provedPreklad(){
                         bude_posun = true;
                     }
                     m_konec = true; m_posun = true;
-//                    this->posunKonec();
-                    if (m_posun) m_vstup = scan->nactiDalsi();
-//                    m_list.nastavAktNaFirst();
+                    if (bude_posun) m_vstup = scan->nactiDalsi();
+                    m_list.nastavAktNaFirst();
                     cout << "jdu tudma\n";
                     barier_2.lock();
                     barier_1.unlock();
